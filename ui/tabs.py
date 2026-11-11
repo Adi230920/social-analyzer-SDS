@@ -8,6 +8,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 from src.algorithms.traversal import bfs_shortest_path
+from ui.styles import render_kpi_card
 from ui.visualizers import plot_rep_comparison, plot_scaling_benchmarks, render_pyvis_graph
 
 BIG_O_REFERENCE = [
@@ -64,42 +65,26 @@ BIG_O_REFERENCE = [
 
 # ── Reusable UI components ─────────────────────────────────────────────────────
 
-def _kpi_card(label: str, value: str, icon: str = "📊") -> str:
-    """Return an HTML KPI card with icon, value, and label."""
-    return f'''
-    <div style="
-        background: #131825;
-        border: 1px solid #1E293B;
-        border-radius: 12px;
-        padding: 1rem 1.1rem;
-        text-align: center;
-        transition: border-color 0.2s ease;
-    ">
-        <div style="font-size:1.25rem; margin-bottom:0.2rem;">{icon}</div>
-        <div style="font-size:1.45rem; font-weight:700; color:#E2E8F0;
-                    letter-spacing:-0.02em; line-height:1.2;">{value}</div>
-        <div style="font-size:0.72rem; color:#94A3B8;
-                    margin-top:0.35rem; text-transform:uppercase;
-                    letter-spacing:0.06em; font-weight:500;">{label}</div>
-    </div>'''
-
-
-def _render_kpi_row(cards: list[tuple[str, str, str]]) -> None:
-    """Render a row of KPI cards. Each tuple is (label, value, icon)."""
+def _render_kpi_row(cards: list[tuple[str, str] | tuple[str, str, str]]) -> None:
+    """Render a row of glassmorphic KPI cards using render_kpi_card."""
     cols = st.columns(len(cards))
-    for col, (label, value, icon) in zip(cols, cards):
-        col.markdown(_kpi_card(label, value, icon), unsafe_allow_html=True)
+    for col, card in zip(cols, cards):
+        label = card[0]
+        value = card[1]
+        subtitle = card[2] if len(card) > 2 else ""
+        with col:
+            render_kpi_card(label=label, value=value, subtitle=subtitle)
 
 
 def _section_heading(title: str, subtitle: str = "") -> None:
     """Render a styled section heading with optional subtitle."""
     sub_html = (
-        f'<p style="color:#94A3B8;font-size:0.84rem;margin-top:0.1rem;margin-bottom:0;">'
+        f'<p style="color:#94A3B8;font-size:0.84rem;margin-top:0.15rem;margin-bottom:0;">'
         f'{subtitle}</p>'
         if subtitle else ""
     )
     st.markdown(
-        f'<h3 style="color:#E2E8F0;font-weight:600;font-size:1.15rem;'
+        f'<h3 style="color:#F8FAFC;font-weight:600;font-size:1.15rem;'
         f'margin-bottom:0.15rem;margin-top:0.5rem;">{title}</h3>{sub_html}',
         unsafe_allow_html=True,
     )
@@ -108,7 +93,7 @@ def _section_heading(title: str, subtitle: str = "") -> None:
 def _styled_divider() -> None:
     """Render a subtle themed horizontal rule."""
     st.markdown(
-        '<hr style="border:none;border-top:1px solid #1E293B;margin:1.5rem 0;">',
+        '<hr style="border:none;border-top:1px solid rgba(255, 255, 255, 0.08);margin:1.5rem 0;">',
         unsafe_allow_html=True,
     )
 
@@ -120,21 +105,21 @@ def _render_overview_tab(summary: dict, comp_stats: dict, rep_list: list[dict]) 
     _section_heading("Graph Structural Summary", "Key topological metrics for the active graph")
 
     _render_kpi_row([
-        ("Nodes", f"{summary['nodes']:,}", "🔵"),
-        ("Edges", f"{summary['edges']:,}", "🔗"),
-        ("Density", f"{summary['density']:.5f}", "📐"),
-        ("Avg Degree", f"{summary['avg_degree']:.2f}", "📊"),
-        ("Connected",
-         "Yes" if summary["is_connected"]
-         else f"No ({comp_stats['num_components']} CCs)", "🌐"),
+        ("Total Nodes", f"{summary['nodes']:,}", "Active vertices"),
+        ("Total Edges", f"{summary['edges']:,}", "Undirected links"),
+        ("Graph Density", f"{summary['density']:.5f}", "Edge-to-vertex ratio"),
+        ("Average Degree", f"{summary['avg_degree']:.2f}", "Connections per node"),
+        ("Connectivity",
+         "Connected" if summary["is_connected"]
+         else f"{comp_stats['num_components']} Components", "Global status"),
     ])
 
     st.markdown("<div style='height:0.75rem;'></div>", unsafe_allow_html=True)
 
     _render_kpi_row([
-        ("Connected Components", f"{comp_stats['num_components']:,}", "🧩"),
-        ("Largest Component", f"{comp_stats['largest_cc_size']:,}", "🏔️"),
-        ("Approx. Diameter", f"{comp_stats['diameter_approx']}", "📏"),
+        ("Connected Components", f"{comp_stats['num_components']:,}", "Disjoint subgraphs"),
+        ("Largest Component", f"{comp_stats['largest_cc_size']:,}", "Giant component vertices"),
+        ("Approx. Diameter", f"{comp_stats['diameter_approx']}", "Max BFS distance"),
     ])
 
     _styled_divider()
@@ -156,11 +141,11 @@ def _render_explorer_tab(
                      "Modularity-based partitioning and local clustering coefficients")
 
     _render_kpi_row([
-        ("Communities", f"{communities['num_communities']}", "🏘️"),
-        ("Modularity (Q)", f"{communities['modularity']:.4f}", "📈"),
-        ("Avg Clustering", f"{communities['avg_clustering']:.4f}", "🔄"),
-        ("Triangles", f"{communities['triangles']:,}", "🔺"),
-        ("Detection Time", f"{communities['time_ms']:.2f} ms", "⏱️"),
+        ("Communities", f"{communities['num_communities']}", "Louvain partitions"),
+        ("Modularity (Q)", f"{communities['modularity']:.4f}", "Partition quality"),
+        ("Avg Clustering", f"{communities['avg_clustering']:.4f}", "Local coefficient"),
+        ("Triangles", f"{communities['triangles']:,}", "Closed triplets"),
+        ("Detection Time", f"{communities['time_ms']:.2f} ms", "Wall-clock latency"),
     ])
 
     if communities["comm_sizes"]:
@@ -216,9 +201,9 @@ def _render_explorer_tab(
             _render_kpi_row([
                 ("Hops",
                  "Unreachable" if bfs_result["hops"] < 0 else str(bfs_result["hops"]),
-                 "🚶"),
-                ("Nodes Explored", f"{bfs_result['visited_count']:,}", "🔍"),
-                ("BFS Time", f"{bfs_result['time_ms']:.2f} ms", "⚡"),
+                 "Shortest path steps"),
+                ("Nodes Explored", f"{bfs_result['visited_count']:,}", "Traversal breadth"),
+                ("BFS Time", f"{bfs_result['time_ms']:.2f} ms", "Execution latency"),
             ])
 
             st.markdown("<div style='height:0.5rem;'></div>", unsafe_allow_html=True)

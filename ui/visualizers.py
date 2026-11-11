@@ -15,19 +15,20 @@ MAX_PYVIS_NODES = 200
 # ── Design-token aligned palettes ──────────────────────────────────────────────
 
 COMMUNITY_PALETTE = [
-    "#00D4FF", "#A78BFA", "#10B981", "#F59E0B", "#EF4444",
-    "#EC4899", "#06B6D4", "#84CC16", "#38BDF8", "#FB7185",
-    "#FACC15", "#2DD4BF", "#C084FC", "#FB923C", "#8B5CF6",
-    "#14B8A6", "#6366F1", "#EAB308", "#A855F7", "#22C55E",
+    "#6366F1", "#06B6D4", "#10B981", "#8B5CF6", "#F59E0B",
+    "#EC4899", "#3B82F6", "#14B8A6", "#F97316", "#A855F7",
+    "#00D4FF", "#34D399", "#F43F5E", "#84CC16", "#EAB308",
+    "#818CF8", "#2DD4BF", "#C084FC", "#FB923C", "#22C55E",
 ]
 
-CHART_COLORS = ["#00D4FF", "#A78BFA", "#10B981", "#F59E0B", "#EF4444", "#EC4899"]
+CHART_COLORS = ["#6366F1", "#06B6D4", "#10B981", "#8B5CF6", "#F59E0B", "#EC4899"]
 
 _CHART_LAYOUT = dict(
+    template="plotly_dark",
     paper_bgcolor="rgba(0,0,0,0)",
     plot_bgcolor="rgba(0,0,0,0)",
-    font=dict(family="Inter, sans-serif", color="#E2E8F0", size=12),
-    title_font=dict(size=15, color="#E2E8F0"),
+    font=dict(family="Inter, sans-serif", color="#F8FAFC", size=12),
+    title_font=dict(family="Inter, sans-serif", size=15, color="#F8FAFC"),
     legend=dict(
         orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
         bgcolor="rgba(0,0,0,0)", font=dict(size=11, color="#94A3B8"),
@@ -36,7 +37,11 @@ _CHART_LAYOUT = dict(
     hovermode="x unified",
 )
 
-_AXIS_STYLE = dict(gridcolor="#1E293B", zerolinecolor="#1E293B", linecolor="#1E293B")
+_AXIS_STYLE = dict(
+    gridcolor="rgba(255, 255, 255, 0.08)",
+    zerolinecolor="rgba(255, 255, 255, 0.12)",
+    linecolor="rgba(255, 255, 255, 0.12)",
+)
 
 
 def _apply_theme(fig: go.Figure) -> go.Figure:
@@ -194,7 +199,7 @@ def plot_rep_comparison(rep_list: list[dict]) -> go.Figure:
             x=formats,
             y=memory_vals,
             offsetgroup=0,
-            marker_color="#00D4FF",
+            marker_color="#6366F1",
             marker_line=dict(width=0),
             text=memory_vals,
             texttemplate="%{text:.2f}",
@@ -209,7 +214,7 @@ def plot_rep_comparison(rep_list: list[dict]) -> go.Figure:
             x=formats,
             y=timing_vals,
             offsetgroup=1,
-            marker_color="#A78BFA",
+            marker_color="#06B6D4",
             marker_line=dict(width=0),
             text=timing_vals,
             texttemplate="%{text:.2f}",
@@ -247,6 +252,7 @@ def _build_scaling_line_chart(
         color="algorithm",
         markers=True,
         title=title,
+        template="plotly_dark",
         labels={
             "n_nodes": "Subgraph Size (Nodes)",
             y_col: y_title,
